@@ -16,6 +16,12 @@
 static_assert(PICO_STDIO_USB_LOW_PRIORITY_IRQ > RTC_IRQ, ""); // note RTC_IRQ is currently the last one
 static mutex_t stdio_usb_mutex;
 
+#if PICO_TIME_DEFAULT_ALARM_POOL_DISABLED
+#define PICO_STDIO_USB_HARDWARE_ALARM 1
+#define PICO_STDIO_USB_MAX_TIMERS 16
+static alarm_pool_t *pico_usb_alarm_pool;
+#endif
+
 static void low_priority_worker_irq(void) {
     // if the mutex is already owned, then we are in user code
     // in this file which will do a tud_task itself, so we'll just do nothing
@@ -100,7 +106,14 @@ bool stdio_usb_init(void) {
     irq_set_enabled(PICO_STDIO_USB_LOW_PRIORITY_IRQ, true);
 
     mutex_init(&stdio_usb_mutex);
+#if PICO_TIME_DEFAULT_ALARM_POOL_DISABLED
+    pico_usb_alarm_pool = alarm_pool_create(PICO_STDIO_USB_HARDWARE_ALARM,
+					    PICO_STDIO_USB_MAX_TIMERS);
+    bool rc = alarm_pool_add_alarm_in_us(pico_usb_alarm_pool, PICO_STDIO_USB_TASK_INTERVAL_US,
+					 timer_task, NULL, true);
+#else
     bool rc = add_alarm_in_us(PICO_STDIO_USB_TASK_INTERVAL_US, timer_task, NULL, true);
+#endif
     if (rc) {
         stdio_set_driver_enabled(&stdio_usb, true);
 #if PICO_STDIO_USB_CONNECT_WAIT_TIMEOUT_MS

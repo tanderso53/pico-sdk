@@ -11,6 +11,8 @@
 #include "pico/time.h"
 #include "hardware/sync.h"
 
+#include "swapk_pico_lock_core.h"
+
 /** \file lock_core.h
  *  \defgroup lock_core lock_core
  *  \ingroup pico_sync
