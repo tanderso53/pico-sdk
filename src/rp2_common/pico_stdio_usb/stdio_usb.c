@@ -14,7 +14,7 @@
 #include "hardware/irq.h"
 
 static_assert(PICO_STDIO_USB_LOW_PRIORITY_IRQ > RTC_IRQ, ""); // note RTC_IRQ is currently the last one
-static mutex_t stdio_usb_mutex;
+mutex_t stdio_usb_mutex;
 
 #if PICO_TIME_DEFAULT_ALARM_POOL_DISABLED
 #define PICO_STDIO_USB_HARDWARE_ALARM 1
